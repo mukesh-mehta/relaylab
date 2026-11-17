@@ -37,7 +37,14 @@ The core is deliberately usable before the delivery infrastructure exists: point
 
 Requirements: **Python 3.11+** and a modern browser. Node.js 18+ is only needed for JavaScript development checks. No frontend build or `npm install` is required.
 
-Open a terminal inside this project's `relaylab` folder.
+Clone the repository and enter the project folder:
+
+```bash
+git clone https://github.com/mukesh-mehta/relaylab.git
+cd relaylab
+```
+
+If you already have the project, open a terminal inside its `relaylab` folder instead.
 
 ### Linux / macOS
 
@@ -205,11 +212,29 @@ Tests use temporary databases. The suite checks raw bytes, fixtures, restart per
 - **Missing `venv` on Ubuntu/Debian:** install the distribution's `python3-venv` package.
 - **Database newer than this app:** startup refuses unknown schema versions. Restore a compatible backup or use the matching app version.
 
-## Sharing and contributing
+## Repository workflow and contributing
 
-This project is prepared for a separate GitHub repository. It has no dependency on Trailmark. Do not add it to Trailmark's remote.
+The repository is [mukesh-mehta/relaylab](https://github.com/mukesh-mehta/relaylab). Start a focused branch from the latest `main` for each change:
 
-For a new empty GitHub repository, initialize this folder if necessary, commit the source, and set `origin` to that repository's actual URL. If local commits already exist, keep them and only add the remote before `git push -u origin main`. Review staged files for databases, fixtures, credentials, and virtual environments. GitHub Pages cannot run this Python backend.
+```bash
+git switch main
+git pull --ff-only
+git switch -c feat/your-feature
+```
+
+Make the change and run the checks in **Development and tests**. Then stage the relevant files and review the diff before committing:
+
+```bash
+git add path/to/changed-file
+git diff --cached --stat
+git diff --cached
+git commit -m "feat: describe the change"
+git push -u origin feat/your-feature
+```
+
+Replace the example branch name and file path with your own. Open a pull request to `main` and wait for [GitHub Actions](https://github.com/mukesh-mehta/relaylab/actions) to pass before merging. Use `fix:`, `test:`, or `docs:` when those better describe the change.
+
+Review staged files for databases, fixture exports, credentials, and virtual environments. Default exported fixture filenames are ignored; keep exports with custom names outside the repository. GitHub hosts the source; GitHub Pages cannot run this Python backend.
 
 Start with [CONTRIBUTING.md](CONTRIBUTING.md). The most useful next implementation is **feature 6**, followed by feature 7; security and tenant isolation are required before any hosted deployment.
 

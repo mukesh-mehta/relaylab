@@ -25,6 +25,6 @@ The inbox creation flow was adjusted so its dialog closes after the new inbox vi
 
 ## Boundaries of verification
 
-Browser QA used a separate database at a temporary path. The distributed ZIP does not contain that database or any virtual environment. Export contents were validated through API tests; native download dialogs were not automated. Only Python 3.12 was executed locally. Python 3.11/3.13 and Node 22 are configured in GitHub Actions, but remote CI has not run because no GitHub repository has been connected for this project.
+Browser QA used a separate database at a temporary path. The distributed ZIP does not contain that database or any virtual environment. Export contents were validated through API tests; native download dialogs were not automated. Only Python 3.12 was executed locally. The 67 Python tests, five JavaScript tests, and syntax checks passed again before the initial GitHub push. Python 3.11/3.13 and Node 22 are additionally configured in GitHub Actions; consult the [workflow runs](https://github.com/mukesh-mehta/relaylab/actions) for remote results associated with each commit.
 
 These checks validate the local baseline. They do not establish production performance, public-host security, multi-tenant isolation, or the seven unimplemented roadmap features.
