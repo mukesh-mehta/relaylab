@@ -1,0 +1,11 @@
+{
+  "name": "relaylab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check relaylab/static/app.js && node --check relaylab/static/format.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {"node": ">=18"}
+}

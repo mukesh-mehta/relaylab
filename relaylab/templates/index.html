@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A local webhook workbench. Capture requests, inspect payloads, and test routing decisions.">
+  <title>RelayLab — Webhook workbench</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to workspace</a>
+<aside class="sidebar">
+  <a href="/" class="brand"><span class="brand-icon">↯</span>relay<span>lab</span><small>LOCAL</small></a>
+  <div class="workspace"><span class="workspace-icon">D</span><div>Developer workspace<small>Single-user · on this device</small></div></div>
+  <p class="nav-label">WORKBENCH</p>
+  <nav aria-label="Workspace views">
+    <button class="nav active" data-view="capture" aria-current="page"><span>≋</span> Event stream</button>
+    <button class="nav" data-view="rules"><span>⑂</span> Routing lab</button>
+    <button class="nav" data-view="history"><span>◷</span> Run history</button>
+    <button class="nav" data-view="roadmap"><span>◇</span> Roadmap <small>7</small></button>
+  </nav>
+  <div class="sidebar-note"><span class="green-dot"></span> Local simulation mode<p>Inspect what arrived.<br>Understand where it would go.</p></div>
+  <div class="sidebar-footer"><span>RELAYLAB</span><span>v0.1.0</span></div>
+</aside>
+<main id="main">
+  <header class="topbar"><div>Workspace <span>/</span> <b id="breadcrumb">Event stream</b></div><span class="local-badge"><span class="green-dot"></span> LOCAL ENVIRONMENT</span></header>
+  <section class="page-heading"><div><p class="eyebrow">EVERY EVENT HAS A STORY</p><h1 id="page-title">Follow the payload.</h1><p id="page-description">A clear view of your webhooks, from arrival to routing decision.</p></div><button class="primary" id="new-inbox">＋ New inbox</button></section>
+  <div id="global-error" class="error-banner" role="alert" hidden><span></span><button id="retry">Retry connection</button></div>
+  <section class="metrics" aria-label="Workspace metrics">
+    <div><span>CAPTURED EVENTS</span><strong id="stat-events">0</strong><small><span class="green-dot"></span> Persisted locally</small></div>
+    <div><span>JSON PAYLOADS</span><strong id="stat-json">0</strong><small>Ready for routing simulation</small></div>
+    <div><span>SIMULATION RUNS</span><strong id="stat-runs">0</strong><small>Saved decision snapshots</small></div>
+    <div><span>MATCHED RUNS</span><strong id="stat-matched">0</strong><small>One or more target labels</small></div>
+  </section>
+
+  <section id="capture-view" class="view" aria-label="Event stream">
+    <div class="endpoint-panel"><div class="endpoint-heading"><label for="inbox-select">CAPTURE ENDPOINT</label><select id="inbox-select" aria-label="Selected inbox"><option value="">Create an inbox to start</option></select><span id="inbox-state" class="pill">No inbox</span></div><div class="endpoint-url"><span class="method">POST</span><code id="endpoint-url">Create an inbox to get a local endpoint</code><button id="copy-endpoint" class="text-button" disabled>Copy URL</button></div><div class="endpoint-footer"><span>Accepts POST, PUT & PATCH · up to 256 KiB per request</span><div><button id="pause-inbox" class="text-button" disabled>Pause inbox</button><button id="send-sample" class="secondary" disabled>↗ Send sample</button></div></div></div>
+    <div class="stream-toolbar"><div class="search"><span>⌕</span><input id="search" type="search" placeholder="Search payloads, methods, content types…" maxlength="200" aria-label="Search events"></div><select id="format-filter" aria-label="Payload format"><option value="all">All payloads</option><option value="json">JSON only</option><option value="other">Other payloads</option></select><label class="live-control"><input id="live" type="checkbox" checked><span class="green-dot"></span> Live · 5s</label><button id="refresh" class="secondary">↻ Refresh</button></div>
+    <div class="workbench">
+      <section class="stream-panel" aria-labelledby="stream-title"><div class="panel-heading"><h2 id="stream-title">Incoming events <span id="event-count">0</span></h2><span id="stream-state">Listening</span></div><div class="list-labels"><span>EVENT / PAYLOAD</span><span>RECEIVED</span></div><div id="event-list"><div class="empty"><span>⌁</span><h3>Your stream starts here</h3><p>Create an inbox, then send a sample<br>or POST a request from your app.</p></div></div><div class="pagination"><span id="page-info">Newest events</span><button id="load-more" class="text-button" hidden>Load older events ↓</button></div></section>
+      <section class="inspector" aria-label="Event inspector"><div id="inspector-empty" class="empty"><span>⌗</span><h3>Nothing under the microscope. Yet.</h3><p>Select an event to inspect its payload,<br>request headers, and routing decisions.</p><div class="empty-flow"><span>CAPTURE</span><b>→</b><span>INSPECT</span><b>→</b><span>SIMULATE</span></div></div><div id="event-detail" hidden><div class="inspector-heading"><div><span class="eyebrow">EVENT INSPECTOR</span><h2 id="detail-title">Event</h2></div><span class="pill green">Captured</span></div><div class="detail-meta" id="detail-meta"></div><div class="inspector-tabs" role="tablist" aria-label="Inspector sections"><button data-tab="payload" role="tab" aria-selected="true">Payload</button><button data-tab="headers" role="tab" aria-selected="false">Headers</button><button data-tab="decisions" role="tab" aria-selected="false">Decisions</button></div><div id="payload-pane" class="inspector-pane" role="tabpanel"><div class="code-toolbar"><span id="payload-label">JSON BODY</span><label><input type="checkbox" id="raw-toggle"> Raw text</label></div><pre id="payload-code" tabindex="0"></pre></div><div id="headers-pane" class="inspector-pane" role="tabpanel" hidden><p class="hint">Common credential headers are redacted when captured.</p><pre id="headers-code" tabindex="0"></pre></div><div id="decisions-pane" class="inspector-pane" role="tabpanel" hidden><div id="decision-results" class="decision-results"><p class="hint">Run a simulation to evaluate this event against the enabled rules.</p></div></div><div class="inspect-actions"><div><a id="download-raw" class="text-button" download>Raw bytes ↓</a><a id="download-fixture" class="text-button" download>Fixture JSON ↓</a></div><button id="simulate" class="primary">▷ Simulate routing</button></div><p class="simulation-note">Simulation records a decision. No outbound request is sent.</p></div></section>
+    </div>
+  </section>
+
+  <section id="rules-view" class="view" hidden><div class="section-bar"><div><h2>Routing rules</h2><p>Rules apply to JSON events in every inbox. Target names are labels for the simulator.</p></div><button id="new-rule" class="primary">＋ Create rule</button></div><div class="info-strip"><span>⑂</span><div><strong>Predictable rules. Explainable decisions.</strong><p>Match JSON Pointer paths with equals, contains, exists, or greater_than. Combine up to 8 conditions with ALL or ANY.</p></div></div><div id="rule-list" class="rule-list"></div></section>
+
+  <section id="history-view" class="view" hidden><div class="section-bar"><div><h2>Simulation history</h2><p>Each run preserves the evaluated rule revisions and conditions.</p></div><button id="refresh-history" class="secondary">↻ Refresh history</button></div><div id="history-list"></div><button id="more-history" class="secondary" hidden>Load older runs</button></section>
+
+  <section id="roadmap-view" class="view" hidden><div class="section-bar"><div><h2>The next seven chapters.</h2><p>Planned engineering work. These capabilities are not implemented in v0.1.</p></div><span class="pill violet">5 shipped / 7 planned</span></div><div class="roadmap-grid" id="roadmap-grid"></div></section>
+  <footer><span><span class="green-dot"></span> Your events stay on this device.</span><span>CAPTURE → INSPECT → UNDERSTAND</span></footer>
+</main>
+
+<dialog id="inbox-dialog" aria-labelledby="inbox-dialog-title"><form id="inbox-form"><div class="dialog-heading"><div><span class="eyebrow">A NEW SIGNAL</span><h2 id="inbox-dialog-title">Create an inbox</h2></div><button type="button" class="close" data-close="inbox-dialog" aria-label="Close inbox editor">×</button></div><p class="hint">Give this endpoint a name. Its URL will be generated locally.</p><label>Inbox name<input name="name" required maxlength="60" placeholder="e.g. Billing integration"></label><p id="inbox-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="secondary" data-close="inbox-dialog">Cancel</button><button type="submit" class="primary">Create inbox</button></div></form></dialog>
+
+<dialog id="rule-dialog" aria-labelledby="rule-dialog-title"><form id="rule-form"><div class="dialog-heading"><div><span class="eyebrow">DEFINE THE DECISION</span><h2 id="rule-dialog-title">Create a routing rule</h2></div><button type="button" class="close" data-close="rule-dialog" aria-label="Close rule editor">×</button></div><div class="form-row"><label>Rule name<input name="name" required maxlength="80" placeholder="High-value invoices"></label><label>Target label<input name="target" required maxlength="80" placeholder="finance-review"></label></div><label>Match mode<select name="mode"><option value="all">ALL conditions must match</option><option value="any">ANY condition may match</option></select></label><label>Conditions (JSON)<textarea name="conditions" rows="10" required spellcheck="false" aria-describedby="condition-help"></textarea></label><p id="condition-help" class="hint">Use JSON Pointer paths: /data/amount, /items/0/id. Escape / inside a key as ~1 and ~ as ~0. Values keep their JSON types.</p><label class="check-label"><input name="enabled" type="checkbox" checked> Rule enabled</label><p id="rule-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="secondary" data-close="rule-dialog">Cancel</button><button type="submit" class="primary">Save rule</button></div></form></dialog>
+<div id="toast" role="status" hidden></div>
+</body>
+</html>
